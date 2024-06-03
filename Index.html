@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #game {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 150px);
+            grid-gap: 10px;
+            justify-content: center;
+        }
+
+        .button {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 4px #666;
+            cursor: pointer;
+            opacity: 0.8;
+            background-color: white;
+        }
+
+        .button:active {
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+            opacity: 1;
+        }
+
+        .active {
+            opacity: 1 !important;
+        }
+
+        #start {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game"></div>
+    <button id="start">Start</button>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const colors = ['green', 'red', 'yellow', 'blue', 'orange', 'purple', 'cyan', 'magenta'];
+            let gameSequence = [];
+            let userSequence = [];
+            let level = 0;
+            const gameContainer = document.getElementById('game');
+            const startButton = document.getElementById('start');
+            let usedColors = []; // Keep track of used colors
+
+            startButton.addEventListener('click', () => {
+                gameSequence = [];
+                userSequence = [];
+                level = 0;
+                usedColors = colors.slice(0, 4); // Start with first 4 colors
+                gameContainer.innerHTML = ''; // Clear existing buttons
+                addButtons(usedColors); // Start with 4 buttons
+                nextLevel();
+            });
+
+            function addButtons(colorSet) {
+                colorSet.forEach(color => {
+                    const button = document.createElement('div');
+                    button.classList.add('button');
+                    button.id = color;
+                    button.addEventListener('click', (e) => {
+                        const color = e.target.id;
+                        userSequence.push(color);
+                        flashButton(color);
+                        checkUserSequence();
+                    });
+                    gameContainer.appendChild(button);
+                });
+                adjustGrid();
+            }
+
+            function adjustGrid() {
+                const buttonCount = document.querySelectorAll('.button').length;
+                const columns = Math.ceil(Math.sqrt(buttonCount));
+                gameContainer.style.gridTemplateColumns = `repeat(${columns}, 150px)`;
+            }
+
+            function nextLevel() {
+                level++;
+                userSequence = [];
+                const randomColor = colors[Math.floor(Math.random() * usedColors.length)];
+                gameSequence.push(randomColor);
+                flashSequence();
+                
+                if (level % 5 === 0 && usedColors.length < colors.length) { // Add new colors periodically
+                    const newColors = colors.slice(usedColors.length, usedColors.length + Math.ceil(usedColors.length / 2));
+                    usedColors = usedColors.concat(newColors);
+                    addButtons(newColors);
+                }
+            }
+
+            function flashSequence() {
+                let delay = 0;
+                gameSequence.forEach((color, index) => {
+                    setTimeout(() => {
+                        flashButton(color);
+                    }, delay);
+                    delay += 600;
+                });
+            }
+
+            function flashButton(color) {
+                const button = document.getElementById(color);
+                button.style.backgroundColor = color;
+                setTimeout(() => {
+                    button.style.backgroundColor = 'white';
+                }, 300);
+            }
+
+            function checkUserSequence() {
+                const currentStep = userSequence.length - 1;
+                if (userSequence[currentStep] !== gameSequence[currentStep]) {
+                    alert('Game Over! You reached level ' + level);
+                    return;
+                }
+
+                if (userSequence.length === gameSequence.length) {
+                    setTimeout(() => {
+                        nextLevel();
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
